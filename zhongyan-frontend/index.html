@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="江西中研智能装备有限公司官网前端原型，展示吹瓶机产品、定制服务、交付案例与询价入口。"
+    />
+    <title>江西中研智能装备有限公司</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header" id="top">
+      <a class="brand" href="#top" aria-label="返回首页">
+        <span class="brand-mark">ZY</span>
+        <span>
+          <strong>江西中研智能装备有限公司</strong>
+          <small>Jiangxi Zhongyan Intelligent Equipment Co., Ltd.</small>
+        </span>
+      </a>
+
+      <button class="nav-toggle" type="button" aria-label="打开导航" data-nav-toggle>☰</button>
+
+      <nav class="nav" data-nav>
+        <a href="./products.html">产品中心</a>
+        <a href="#service">定制服务</a>
+        <a href="#contact">联系我们</a>
+      </nav>
+
+      <button class="lang-switch" type="button" title="英文后续统一翻译">中文 / EN</button>
+    </header>
+
+    <main>
+      <section class="hero">
+        <picture>
+          <img
+            src="https://omo-oss-image.thefastimg.com/portal-saas/pg2024112919344399025/cms/image/ee7e84b3-366f-489f-ad0e-a65111df37a2.jpg"
+            alt="江西中研智能装备生产车间"
+            width="1920"
+            height="860"
+            fetchpriority="high"
+          />
+        </picture>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="eyebrow">吹瓶机及整线解决方案</p>
+          <h1>面向瓶装生产线的智能吹瓶设备制造商</h1>
+          <p class="hero-copy">
+            提供 PET、PP 吹瓶设备选型、瓶型适配、产能规划、整线配置与交付支持。
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="./products.html">查看设备</a>
+            <button class="button secondary" type="button" data-open-inquiry>获取方案</button>
+          </div>
+          <dl class="hero-metrics" aria-label="核心能力">
+            <div>
+              <dt>300-24000</dt>
+              <dd>瓶/小时覆盖</dd>
+            </div>
+            <div>
+              <dt>PET / PP</dt>
+              <dd>材料适配</dd>
+            </div>
+            <div>
+              <dt>整线</dt>
+              <dd>方案交付</dd>
+            </div>
+          </dl>
+        </div>
+      </section>
+
+      <section class="section category-strip" aria-label="产品分类">
+        <div class="section-head compact">
+          <p class="eyebrow">Product Scope</p>
+          <h2>你要找哪类设备？</h2>
+        </div>
+        <div class="category-grid" data-category-strip></div>
+      </section>
+
+      <section class="section simple-service" id="service">
+        <div class="section-copy">
+          <p class="eyebrow">Custom Service</p>
+          <h2>不确定型号也可以先提交需求</h2>
+          <p>
+            只需要说明瓶型、材料、目标产能和是否需要整线，我们再推荐合适设备。
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="./products.html">进入产品中心</a>
+            <button class="button ghost" type="button" data-open-inquiry>提交选型需求</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="section contact-section" id="contact">
+        <div>
+          <p class="eyebrow">Contact</p>
+          <h2>告诉我们瓶型和产能目标</h2>
+          <p>我们会根据材料、容量、产能和整线需求推荐设备。</p>
+        </div>
+        <button class="button primary" type="button" data-open-inquiry>立即询价</button>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div>
+        <strong>江西中研智能装备有限公司</strong>
+        <p>地址：江西省宜春经济技术开发区宜春大道6号</p>
+      </div>
+      <div class="footer-links">
+        <a href="./products.html">产品中心</a>
+        <a href="#contact">联系我们</a>
+      </div>
+    </footer>
+
+    <dialog class="inquiry-dialog" data-inquiry-dialog>
+      <form method="dialog" class="inquiry-form">
+        <button class="dialog-close" value="cancel" aria-label="关闭">×</button>
+        <p class="eyebrow">Inquiry</p>
+        <h2>询价 / 选型需求</h2>
+        <div class="form-grid">
+          <label>姓名<input type="text" placeholder="请输入姓名" /></label>
+          <label>电话<input type="tel" placeholder="请输入电话" /></label>
+          <label>邮箱<input type="email" placeholder="用于接收方案，可选" /></label>
+          <label>感兴趣产品<input type="text" data-inquiry-product placeholder="可自动带入产品" /></label>
+          <label>材料<input type="text" placeholder="PET / PP / 其他" /></label>
+          <label>目标容量<input type="text" placeholder="例如 600ml / 5L" /></label>
+          <label class="wide">需求描述<textarea rows="4" placeholder="瓶型、产能、预算、是否需要整线等"></textarea></label>
+        </div>
+        <p class="form-note">原型阶段暂不提交。正式版会接入验证码、频率限制和后台询盘管理。</p>
+        <button class="button primary full" value="default">确认需求</button>
+      </form>
+    </dialog>
+
+    <dialog class="detail-dialog" data-detail-dialog>
+      <form method="dialog" class="detail-shell">
+        <button class="dialog-close" value="cancel" aria-label="关闭">×</button>
+        <div data-detail-content></div>
+      </form>
+    </dialog>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
