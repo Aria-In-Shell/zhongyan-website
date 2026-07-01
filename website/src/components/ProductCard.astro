@@ -1,0 +1,34 @@
+---
+import { getProductText } from "../data/products";
+import { withBase } from "../utils/paths";
+
+const { product, locale = "en" } = Astro.props;
+const text = getProductText(product, locale);
+const detailHref = withBase(locale === "zh" ? `/zh/products/${product.id}/` : `/products/${product.id}/`);
+const productImage = withBase(product.image);
+const inquiryLabel = locale === "zh" ? "立即询价" : "Inquire Now";
+const detailLabel = locale === "zh" ? "查看详情" : "View Details";
+---
+
+<article class="product-card" data-product-card data-search={`${product.model} ${text.name} ${text.usage}`}>
+  <div class="product-image">
+    <img src={productImage} alt={text.name} width="420" height="315" loading="lazy" />
+  </div>
+  <div class="product-body">
+    <div>
+      <small>{product.model}</small>
+      <h3>{text.name}</h3>
+    </div>
+    <p>{text.sellingPoint}</p>
+    <dl class="spec-list">
+      <div><dt>{locale === "zh" ? "容量" : "Capacity"}</dt><dd>{product.maxCapacity}</dd></div>
+      <div><dt>{locale === "zh" ? "产能" : "Output"}</dt><dd>{product.outputPerHour}/h</dd></div>
+      <div><dt>{locale === "zh" ? "材料" : "Material"}</dt><dd>{product.material}</dd></div>
+      <div><dt>{locale === "zh" ? "用途" : "Usage"}</dt><dd>{text.usage}</dd></div>
+    </dl>
+    <div class="card-actions">
+      <a class="button ghost" href={detailHref}>{detailLabel}</a>
+      <a class="button primary" href={`${detailHref}#inquiry`}>{inquiryLabel}</a>
+    </div>
+  </div>
+</article>

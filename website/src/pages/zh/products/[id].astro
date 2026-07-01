@@ -1,0 +1,108 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import InquiryForm from "../../../components/InquiryForm.astro";
+import { getProductText } from "../../../data/products";
+import { getProducts } from "../../../data/pocketbase";
+import { withBase } from "../../../utils/paths";
+
+export async function getStaticPaths() {
+  const products = await getProducts();
+  return products.map((product) => ({
+    params: { id: product.id },
+    props: { product }
+  }));
+}
+
+const { product } = Astro.props;
+const text = getProductText(product, "zh");
+const productImage = withBase(product.image);
+---
+
+<BaseLayout locale="zh" title={`${text.name}｜江西中研智能装备有限公司`}>
+  <main class="subpage-main">
+    <section class="section detail-grid">
+      <div class="product-gallery" data-gallery>
+        <div class="gallery-main-frame" data-gallery-frame>
+          <button class="gallery-arrow gallery-arrow-left" type="button" data-gallery-prev aria-label="上一张图片">‹</button>
+          <img class="gallery-main-image" src={productImage} alt={text.name} width="620" height="465" loading="eager" data-gallery-main />
+          <button class="gallery-arrow gallery-arrow-right" type="button" data-gallery-next aria-label="下一张图片">›</button>
+          <div class="gallery-dots" aria-label="图片分页">
+            {(product.images ?? [product.image]).map((_, index) => (
+              <button class:list={["gallery-dot", { "is-active": index === 0 }]} type="button" data-gallery-dot data-index={index} aria-label={`切换到第 ${index + 1} 张图片`}></button>
+            ))}
+          </div>
+        </div>
+        <div class="gallery-thumbs">
+          {(product.images ?? [product.image]).map((image, index) => (
+            <button class:list={["gallery-thumb", { "is-active": index === 0 }]} type="button" data-gallery-thumb data-index={index} data-src={withBase(image)} aria-label={`切换到第 ${index + 1} 张图片`}>
+              <img src={withBase(image)} alt={`${text.name} ${index + 1}`} width="180" height="135" loading={index === 0 ? "eager" : "lazy"} />
+            </button>
+          ))}
+        </div>
+      </div>
+      <div>
+        <p class="eyebrow">{product.model}</p>
+        <h1>{text.name}</h1>
+        <p>{text.sellingPoint}</p>
+        <dl class="spec-list">
+          <div><dt>分类</dt><dd>{product.category}</dd></div>
+          <div><dt>腔数</dt><dd>{product.cavities}</dd></div>
+          <div><dt>最大容量</dt><dd>{product.maxCapacity}</dd></div>
+          <div><dt>理论产能</dt><dd>{product.outputPerHour}/h</dd></div>
+          <div><dt>瓶口范围</dt><dd>{product.neckRange}</dd></div>
+          <div><dt>适用材料</dt><dd>{product.material}</dd></div>
+          <div><dt>自动化程度</dt><dd>{product.automation}</dd></div>
+        </dl>
+        <h2>询价</h2>
+        <InquiryForm locale="zh" model={product.model} />
+      </div>
+    </section>
+  </main>
+</BaseLayout>
+
+<script>
+  document.querySelectorAll("[data-gallery]").forEach((gallery) => {
+    const mainImage = gallery.querySelector("[data-gallery-main]");
+    const frame = gallery.querySelector("[data-gallery-frame]");
+    const thumbs = gallery.querySelectorAll("[data-gallery-thumb]");
+    const dots = gallery.querySelectorAll("[data-gallery-dot]");
+    const prevButton = gallery.querySelector("[data-gallery-prev]");
+    const nextButton = gallery.querySelector("[data-gallery-next]");
+    let activeIndex = 0;
+
+    const showImage = (nextIndex) => {
+      if (!mainImage || thumbs.length === 0) return;
+
+      activeIndex = (nextIndex + thumbs.length) % thumbs.length;
+      const activeThumb = thumbs[activeIndex];
+      const nextSrc = activeThumb?.dataset.src;
+        if (!mainImage || !nextSrc) return;
+
+        mainImage.setAttribute("src", nextSrc);
+        thumbs.forEach((item) => item.classList.remove("is-active"));
+      dots.forEach((item) => item.classList.remove("is-active"));
+      activeThumb.classList.add("is-active");
+      dots[activeIndex]?.classList.add("is-active");
+    };
+
+    thumbs.forEach((thumb, index) => {
+      thumb.addEventListener("click", () => {
+        showImage(index);
+      });
+    });
+
+    dots.forEach((dot, index) => {
+      dot.addEventListener("click", () => {
+        showImage(index);
+      });
+    });
+
+    prevButton?.addEventListener("click", () => showImage(activeIndex - 1));
+    nextButton?.addEventListener("click", () => showImage(activeIndex + 1));
+
+    frame?.addEventListener("wheel", (event) => {
+      event.preventDefault();
+      showImage(activeIndex + (event.deltaY > 0 ? 1 : -1));
+    }, { passive: false });
+  });
+</script>

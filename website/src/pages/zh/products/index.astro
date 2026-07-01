@@ -1,0 +1,30 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import ProductCard from "../../../components/ProductCard.astro";
+import ProductFilters from "../../../components/ProductFilters.astro";
+import { getProducts } from "../../../data/pocketbase";
+
+const products = await getProducts();
+---
+
+<BaseLayout locale="zh" title="产品中心｜江西中研智能装备有限公司">
+  <main class="subpage-main">
+    <section class="page-hero">
+      <p class="eyebrow">Product Center</p>
+      <h1>产品中心</h1>
+      <p>按型号、容量、材料和生产需求筛选设备。</p>
+    </section>
+
+    <section class="section">
+      <div class="product-layout">
+        <ProductFilters locale="zh" />
+        <div>
+          <div class="result-bar"><strong data-product-count>{products.length}</strong><span>台设备可选</span></div>
+          <div class="product-grid">
+            {products.map((product) => <ProductCard product={product} locale="zh" />)}
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</BaseLayout>

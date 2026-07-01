@@ -1,0 +1,67 @@
+---
+import "../styles/global.css";
+import { site } from "../data/site";
+import { withBase, withoutBase } from "../utils/paths";
+
+const {
+  title = site.company.en,
+  description = "Zhongyan blow molding machines and complete line solutions.",
+  locale = "en"
+} = Astro.props;
+
+const isZh = locale === "zh";
+const homeHref = withBase(isZh ? "/zh/" : "/");
+const productsHref = withBase(isZh ? "/zh/products/" : "/products/");
+const contactLabel = isZh ? "联系我们" : "Contact";
+const productsLabel = isZh ? "产品中心" : "Products";
+const aboutLabel = isZh ? "关于我们" : "About";
+const currentPath = withoutBase(Astro.url.pathname);
+const languageTarget = isZh
+  ? currentPath.replace(/^\/zh/, "") || "/"
+  : currentPath === "/"
+    ? "/zh/"
+    : `/zh${currentPath}`;
+const languageHref = withBase(languageTarget);
+const languageLabel = isZh ? "English" : "中文";
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href={homeHref} aria-label="Home">
+        <span class="brand-mark">ZY</span>
+        <span>
+          <strong>{isZh ? site.company.zh : site.company.en}</strong>
+          <small>{isZh ? site.company.en : "Blow molding equipment manufacturer"}</small>
+        </span>
+      </a>
+
+      <nav class="nav">
+        <a href={productsHref}>{productsLabel}</a>
+        <a href={`${homeHref}#about`}>{aboutLabel}</a>
+        <a href={`${homeHref}#contact`}>{contactLabel}</a>
+      </nav>
+
+      <a class="lang-switch" href={languageHref}>{languageLabel}</a>
+    </header>
+
+    <slot />
+
+    <footer class="footer">
+      <div>
+        <strong>{isZh ? site.company.zh : site.company.en}</strong>
+        <p>{isZh ? site.address.zh : site.address.en}</p>
+      </div>
+      <div>
+        <a href={`mailto:${site.email}`}>{site.email}</a>
+      </div>
+    </footer>
+  </body>
+</html>

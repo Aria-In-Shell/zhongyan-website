@@ -1,0 +1,28 @@
+---
+const { locale = "en" } = Astro.props;
+---
+
+<aside class="filters" aria-label="Product filters">
+  <div class="filter-group">
+    <label for="search">{locale === "zh" ? "型号 / 名称" : "Model / Name"}</label>
+    <input id="search" type="search" placeholder={locale === "zh" ? "例如 ZY-06GS 或 5L" : "e.g. ZY-06GS or 5L"} data-search-input />
+  </div>
+  <p>{locale === "zh" ? "更多筛选会在接入 PocketBase 后扩展。" : "More filters will be added after PocketBase integration."}</p>
+</aside>
+
+<script>
+  const input = document.querySelector("[data-search-input]");
+  const cards = [...document.querySelectorAll("[data-product-card]")];
+  const count = document.querySelector("[data-product-count]");
+
+  input?.addEventListener("input", () => {
+    const keyword = input.value.trim().toLowerCase();
+    let visible = 0;
+    cards.forEach((card) => {
+      const matched = card.dataset.search.toLowerCase().includes(keyword);
+      card.style.display = matched ? "" : "none";
+      if (matched) visible += 1;
+    });
+    if (count) count.textContent = String(visible);
+  });
+</script>

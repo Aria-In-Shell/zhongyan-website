@@ -1,0 +1,315 @@
+---
+import "../styles/global.css";
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>中研官网运营后台</title>
+  </head>
+  <body class="admin-page">
+    <main class="admin-shell">
+      <section class="admin-login" data-login-panel>
+        <p class="eyebrow">Zhongyan Admin</p>
+        <h1>中研官网运营后台</h1>
+        <p>用于查看产品库和客户询价线索。当前为本地 Demo 版。</p>
+        <form class="admin-form" data-login-form>
+          <label>后台邮箱<input name="email" type="email" value="admin@zhongyan.local" required /></label>
+          <label>后台密码<input name="password" type="password" value="ZhongyanDemo2026!" required /></label>
+          <button class="button primary" type="submit">登录后台</button>
+          <p data-login-status></p>
+        </form>
+      </section>
+
+      <section class="admin-dashboard" data-dashboard hidden>
+        <header class="admin-topbar">
+          <div>
+            <p class="eyebrow">CMS + CRM</p>
+            <h1>中研官网运营后台</h1>
+          </div>
+          <button class="button ghost" type="button" data-logout>退出</button>
+        </header>
+
+        <nav class="admin-tabs" aria-label="后台模块">
+          <button class="is-active" type="button" data-tab="leads">询价线索</button>
+          <button type="button" data-tab="products">产品库</button>
+        </nav>
+
+        <section class="admin-panel" data-panel="leads">
+          <div class="admin-panel-head">
+            <div>
+              <h2>询价线索</h2>
+              <p>客户从前台表单提交后，会出现在这里。</p>
+            </div>
+            <div class="admin-actions">
+              <label>
+                状态筛选
+                <select data-lead-filter>
+                  <option value="">全部</option>
+                  <option value="new">新线索</option>
+                  <option value="contacted">已联系</option>
+                  <option value="qualified">有效线索</option>
+                  <option value="won">已成交</option>
+                  <option value="lost">无效/流失</option>
+                </select>
+              </label>
+              <button class="button ghost" type="button" data-refresh="leads">刷新</button>
+            </div>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>提交时间</th>
+                  <th>姓名</th>
+                  <th>邮箱</th>
+                  <th>电话</th>
+                  <th>感兴趣型号</th>
+                  <th>材料</th>
+                  <th>目标产能</th>
+                  <th>跟进状态</th>
+                  <th>负责人</th>
+                  <th>跟进备注</th>
+                  <th>需求描述</th>
+                </tr>
+              </thead>
+              <tbody data-leads-body></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="admin-panel" data-panel="products" hidden>
+          <div class="admin-panel-head">
+            <div>
+              <h2>产品库</h2>
+              <p>当前展示已导入的 6 个样板产品。</p>
+            </div>
+            <button class="button ghost" type="button" data-refresh="products">刷新</button>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>型号</th>
+                  <th>中文名称</th>
+                  <th>Excel型号</th>
+                  <th>分类</th>
+                  <th>材料</th>
+                  <th>腔数</th>
+                  <th>最大容量</th>
+                  <th>理论产能</th>
+                  <th>是否上架</th>
+                  <th>首页推荐</th>
+                </tr>
+              </thead>
+              <tbody data-products-body></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      const PB_URL = "http://127.0.0.1:8090";
+      const tokenKey = "zhongyan_admin_token";
+      const loginPanel = document.querySelector("[data-login-panel]");
+      const dashboard = document.querySelector("[data-dashboard]");
+      const loginForm = document.querySelector("[data-login-form]");
+      const loginStatus = document.querySelector("[data-login-status]");
+      const leadsBody = document.querySelector("[data-leads-body]");
+      const productsBody = document.querySelector("[data-products-body]");
+      const leadFilter = document.querySelector("[data-lead-filter]");
+
+      function getToken() {
+        return sessionStorage.getItem(tokenKey);
+      }
+
+      function setLoggedIn(loggedIn) {
+        loginPanel.hidden = loggedIn;
+        dashboard.hidden = !loggedIn;
+      }
+
+      function cell(value) {
+        return `<td>${value ?? ""}</td>`;
+      }
+
+      async function api(path, options = {}) {
+        const token = getToken();
+        const response = await fetch(`${PB_URL}${path}`, {
+          ...options,
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(options.headers ?? {})
+          }
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || "请求失败");
+        return data;
+      }
+
+      async function loadLeads() {
+        leadsBody.innerHTML = `<tr><td colspan="11">加载中...</td></tr>`;
+        const status = leadFilter?.value;
+        const filter = status ? `&filter=${encodeURIComponent(`status="${status}"`)}` : "";
+        const data = await api(`/api/collections/leads/records?perPage=100&sort=-created${filter}`);
+        leadsBody.innerHTML = data.items.length
+          ? data.items
+              .map((item) => `
+                <tr>
+                  ${cell(item.created?.slice(0, 16).replace("T", " "))}
+                  ${cell(item.name)}
+                  ${cell(item.email)}
+                  ${cell(item.phone)}
+                  ${cell(item.interestedModel)}
+                  ${cell(item.material)}
+                  ${cell(item.targetOutput)}
+                  <td>
+                    <select data-lead-status="${item.id}">
+                      <option value="new" ${item.status === "new" ? "selected" : ""}>新线索</option>
+                      <option value="contacted" ${item.status === "contacted" ? "selected" : ""}>已联系</option>
+                      <option value="qualified" ${item.status === "qualified" ? "selected" : ""}>有效线索</option>
+                      <option value="won" ${item.status === "won" ? "selected" : ""}>已成交</option>
+                      <option value="lost" ${item.status === "lost" ? "selected" : ""}>无效/流失</option>
+                    </select>
+                  </td>
+                  <td><input class="admin-inline-input" data-lead-text="${item.id}" data-field="assignee" value="${item.assignee ?? ""}" placeholder="销售姓名" /></td>
+                  <td><textarea class="admin-inline-note" data-lead-text="${item.id}" data-field="followUpNote" placeholder="填写跟进记录">${item.followUpNote ?? ""}</textarea></td>
+                  ${cell(item.message)}
+                </tr>
+              `)
+              .join("")
+          : `<tr><td colspan="11">暂无询价线索</td></tr>`;
+      }
+
+      async function loadProducts() {
+        productsBody.innerHTML = `<tr><td colspan="10">加载中...</td></tr>`;
+        const data = await api("/api/collections/products/records?perPage=100&sort=model");
+        productsBody.innerHTML = data.items.length
+          ? data.items
+              .map((item) => `
+                <tr>
+                  ${cell(item.model)}
+                  ${cell(item.i18n?.zh?.name)}
+                  ${cell(item.excelModel)}
+                  ${cell(item.category)}
+                  ${cell(item.material)}
+                  ${cell(item.cavities)}
+                  ${cell(item.maxCapacity)}
+                  ${cell(item.outputPerHour)}
+                  <td><input type="checkbox" data-product-bool="${item.id}" data-field="visibleInCatalog" ${item.visibleInCatalog ? "checked" : ""} /></td>
+                  <td><input type="checkbox" data-product-bool="${item.id}" data-field="featured" ${item.featured ? "checked" : ""} /></td>
+                </tr>
+              `)
+              .join("")
+          : `<tr><td colspan="10">暂无产品</td></tr>`;
+      }
+
+      async function updateLeadStatus(id, status) {
+        await api(`/api/collections/leads/records/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status })
+        });
+      }
+
+      async function updateLeadText(id, field, value) {
+        await api(`/api/collections/leads/records/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ [field]: value })
+        });
+      }
+
+      async function updateProductBool(id, field, value) {
+        await api(`/api/collections/products/records/${id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ [field]: value })
+        });
+      }
+
+      loginForm?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const data = new FormData(loginForm);
+        loginStatus.textContent = "登录中...";
+        try {
+          const result = await fetch(`${PB_URL}/api/collections/_superusers/auth-with-password`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              identity: data.get("email"),
+              password: data.get("password")
+            })
+          }).then((response) => response.json());
+
+          if (!result.token) throw new Error(result.message || "登录失败");
+          sessionStorage.setItem(tokenKey, result.token);
+          setLoggedIn(true);
+          await Promise.all([loadLeads(), loadProducts()]);
+        } catch (error) {
+          loginStatus.textContent = error.message || "登录失败";
+        }
+      });
+
+      document.querySelector("[data-logout]")?.addEventListener("click", () => {
+        sessionStorage.removeItem(tokenKey);
+        setLoggedIn(false);
+      });
+
+      document.querySelectorAll("[data-tab]").forEach((button) => {
+        button.addEventListener("click", () => {
+          document.querySelectorAll("[data-tab]").forEach((item) => item.classList.remove("is-active"));
+          button.classList.add("is-active");
+          document.querySelectorAll("[data-panel]").forEach((panel) => {
+            panel.hidden = panel.dataset.panel !== button.dataset.tab;
+          });
+        });
+      });
+
+      document.querySelectorAll("[data-refresh]").forEach((button) => {
+        button.addEventListener("click", () => {
+          if (button.dataset.refresh === "leads") loadLeads();
+          if (button.dataset.refresh === "products") loadProducts();
+        });
+      });
+
+      leadFilter?.addEventListener("change", loadLeads);
+
+      document.body.addEventListener("change", async (event) => {
+        const leadStatus = event.target.closest("[data-lead-status]");
+        const productBool = event.target.closest("[data-product-bool]");
+
+        try {
+          if (leadStatus) {
+            await updateLeadStatus(leadStatus.dataset.leadStatus, leadStatus.value);
+          }
+
+          if (productBool) {
+            await updateProductBool(productBool.dataset.productBool, productBool.dataset.field, productBool.checked);
+          }
+        } catch (error) {
+          alert(error.message || "保存失败，请刷新后重试");
+        }
+      });
+
+      document.body.addEventListener("blur", async (event) => {
+        const leadText = event.target.closest("[data-lead-text]");
+        if (!leadText) return;
+
+        try {
+          await updateLeadText(leadText.dataset.leadText, leadText.dataset.field, leadText.value);
+        } catch (error) {
+          alert(error.message || "保存失败，请刷新后重试");
+        }
+      }, true);
+
+      if (getToken()) {
+        setLoggedIn(true);
+        Promise.all([loadLeads(), loadProducts()]).catch(() => {
+          sessionStorage.removeItem(tokenKey);
+          setLoggedIn(false);
+        });
+      }
+    </script>
+  </body>
+</html>

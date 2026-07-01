@@ -1,0 +1,6 @@
+tools/pocketbase/
+.pnpm-store/
+node_modules/
+website/node_modules/
+website/dist/
+website/.astro/
