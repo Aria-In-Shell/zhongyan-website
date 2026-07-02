@@ -1,75 +1,17 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { withBase } from "../utils/paths";
+import HomePage from "../components/HomePage.astro";
+import { getFeaturedProducts } from "../data/products";
+import { getProducts } from "../data/pocketbase";
 
-const entryCards = [
-  {
-    title: "Product Center",
-    subtitle: "Equipment selection by output, bottle size and application",
-    href: withBase("/products/"),
-    icon: "01"
-  },
-  {
-    title: "About Us",
-    subtitle: "Manufacturing capability and complete line delivery",
-    href: "#about",
-    icon: "02"
-  },
-  {
-    title: "Contact Us",
-    subtitle: "Send bottle samples, output targets and project needs",
-    href: "#contact",
-    icon: "03"
-  }
-];
+const products = await getProducts();
+const featuredProducts = getFeaturedProducts(products);
 ---
 
-<BaseLayout locale="en" title="Zhongyan Intelligent Equipment">
-  <main>
-    <section class="hero legacy-hero">
-      <img
-        src="https://omo-oss-image1.thefastimg.com/portal-saas/pg2024112919344399025/cms/image/ad909c37-42af-4128-ae64-9d2df63fd20f.jpg"
-        alt="Digital city skyline"
-        width="1920"
-        height="960"
-        fetchpriority="high"
-      />
-      <div class="hero-content legacy-hero-content">
-        <p class="eyebrow">Blow molding machine and complete line solutions</p>
-        <h1>Zhongyan Intelligent Equipment</h1>
-        <p class="hero-copy">
-          Advanced, efficient and reliable blow molding equipment for global bottle production lines.
-        </p>
-
-        <div class="hero-entry-grid" aria-label="Primary navigation">
-          {entryCards.map((card) => (
-            <a class="hero-entry-card" href={card.href}>
-              <span>
-                <strong>{card.title}</strong>
-                <em>{card.subtitle}</em>
-              </span>
-              <i>{card.icon}</i>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-
-    <section class="section intro-section" id="about">
-      <p class="eyebrow">About Zhongyan</p>
-      <h2>Focused on blow molding equipment, bottle adaptation and production line support.</h2>
-      <p>
-        Zhongyan provides PET and PP blow molding machines, model selection support, bottle compatibility planning and complete line equipment coordination for production-oriented customers.
-      </p>
-    </section>
-
-    <section class="contact-section" id="contact">
-      <div>
-        <p class="eyebrow">Contact</p>
-        <h2>Send your bottle and output target</h2>
-        <p>We will respond with equipment recommendations and solution planning.</p>
-      </div>
-      <a class="button primary" href={withBase("/products/zy-12xq/#inquiry")}>Inquire Now</a>
-    </section>
-  </main>
+<BaseLayout
+  locale="en"
+  title="Zhongyan Intelligent Equipment | PET & PP Blow Molding Machines"
+  description="PET and PP blow molding machines, model selection support and complete line solutions for global bottle production."
+>
+  <HomePage locale="en" featuredProducts={featuredProducts} />
 </BaseLayout>

@@ -1,12 +1,13 @@
 ---
 import "../styles/global.css";
-import { site } from "../data/site";
+import { site, whatsappLink } from "../data/site";
 import { withBase, withoutBase } from "../utils/paths";
 
 const {
   title = site.company.en,
   description = "Zhongyan blow molding machines and complete line solutions.",
-  locale = "en"
+  locale = "en",
+  ogImage = "/images/products/zy-12xq-01.jpg"
 } = Astro.props;
 
 const isZh = locale === "zh";
@@ -16,22 +17,35 @@ const contactLabel = isZh ? "联系我们" : "Contact";
 const productsLabel = isZh ? "产品中心" : "Products";
 const aboutLabel = isZh ? "关于我们" : "About";
 const currentPath = withoutBase(Astro.url.pathname);
-const languageTarget = isZh
-  ? currentPath.replace(/^\/zh/, "") || "/"
-  : currentPath === "/"
-    ? "/zh/"
-    : `/zh${currentPath}`;
-const languageHref = withBase(languageTarget);
+
+const enPath = currentPath.replace(/^\/zh/, "") || "/";
+const zhPath = currentPath.startsWith("/zh") ? currentPath : currentPath === "/" ? "/zh/" : `/zh${currentPath}`;
+const languageHref = withBase(isZh ? enPath : zhPath);
 const languageLabel = isZh ? "English" : "中文";
+
+const absoluteUrl = (path) => (Astro.site ? new URL(withBase(path), Astro.site).href : withBase(path));
+const canonicalUrl = absoluteUrl(currentPath);
+const ogImageUrl = absoluteUrl(ogImage);
 ---
 
 <!doctype html>
-<html lang={locale}>
+<html lang={isZh ? "zh-CN" : "en"}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <title>{title}</title>
+    <link rel="icon" type="image/svg+xml" href={withBase("/favicon.svg")} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="alternate" hreflang="en" href={absoluteUrl(enPath)} />
+    <link rel="alternate" hreflang="zh" href={absoluteUrl(zhPath)} />
+    <link rel="alternate" hreflang="x-default" href={absoluteUrl(enPath)} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:site_name" content={isZh ? site.company.zh : site.company.en} />
   </head>
   <body>
     <header class="site-header">
@@ -39,29 +53,86 @@ const languageLabel = isZh ? "English" : "中文";
         <span class="brand-mark">ZY</span>
         <span>
           <strong>{isZh ? site.company.zh : site.company.en}</strong>
-          <small>{isZh ? site.company.en : "Blow molding equipment manufacturer"}</small>
+          <small>{isZh ? "吹瓶机及整线解决方案" : "Blow molding equipment manufacturer"}</small>
         </span>
       </a>
 
-      <nav class="nav">
+      <nav class="nav" data-nav>
         <a href={productsHref}>{productsLabel}</a>
         <a href={`${homeHref}#about`}>{aboutLabel}</a>
         <a href={`${homeHref}#contact`}>{contactLabel}</a>
+        <a class="nav-lang" href={languageHref}>{languageLabel}</a>
       </nav>
 
       <a class="lang-switch" href={languageHref}>{languageLabel}</a>
+
+      <button class="nav-toggle" type="button" aria-label="Menu" aria-expanded="false" data-nav-toggle>
+        <span></span><span></span><span></span>
+      </button>
     </header>
 
     <slot />
 
+    <aside class="contact-rail" aria-label={isZh ? "快捷联系" : "Quick contact"}>
+      <a class="rail-item rail-whatsapp" href={whatsappLink()} target="_blank" rel="noopener" aria-label="WhatsApp">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12.04 2a9.9 9.9 0 0 0-8.5 14.9L2 22l5.25-1.5A9.9 9.9 0 1 0 12.04 2Zm0 18.1a8.2 8.2 0 0 1-4.2-1.15l-.3-.18-3.1.9.87-3.04-.2-.31a8.2 8.2 0 1 1 6.93 3.78Zm4.5-6.15c-.25-.12-1.47-.72-1.7-.8-.22-.09-.39-.13-.55.12-.17.25-.64.8-.78.97-.14.16-.29.18-.54.06a6.7 6.7 0 0 1-3.35-2.93c-.25-.43.25-.4.72-1.34.08-.16.04-.3-.02-.43-.06-.12-.55-1.33-.76-1.82-.2-.48-.4-.42-.55-.42h-.47c-.16 0-.43.06-.65.3-.22.25-.86.84-.86 2.05 0 1.2.88 2.37 1 2.54.12.16 1.73 2.64 4.2 3.7.59.26 1.05.4 1.4.52.6.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.2-.58.2-1.08.14-1.18-.06-.1-.22-.16-.47-.28Z"/></svg>
+      </a>
+      <a class="rail-item" href={`mailto:${site.email}`} aria-label="Email">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+      </a>
+      <button class="rail-item rail-wechat" type="button" aria-label={isZh ? "微信" : "WeChat"} data-wechat-toggle>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M9.4 4C5.9 4 3 6.4 3 9.4c0 1.7 1 3.2 2.4 4.2l-.6 1.9 2.1-1.1c.5.1 1 .2 1.6.2h.4A5 5 0 0 1 8.7 13c0-2.9 2.8-5.2 6.2-5.2h.3C14.6 5.6 12.2 4 9.4 4ZM7.3 7.2a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6Zm4.3 0a.8.8 0 1 1 0 1.6.8.8 0 0 1 0-1.6Zm3.5 2.2c-3 0-5.4 2-5.4 4.4 0 2.5 2.4 4.4 5.4 4.4.5 0 1-.1 1.5-.2l1.8 1-.5-1.6c1.3-.9 2.1-2.2 2.1-3.6 0-2.4-2.4-4.4-4.9-4.4Zm-1.9 2.3a.7.7 0 1 1 0 1.4.7.7 0 0 1 0-1.4Zm3.7 0a.7.7 0 1 1 0 1.4.7.7 0 0 1 0-1.4Z"/></svg>
+        <span class="rail-pop" data-wechat-pop hidden>
+          <strong>{isZh ? "微信" : "WeChat"}</strong>
+          <em>{site.wechat}</em>
+          <small>{isZh ? "二维码占位（待提供）" : "QR code placeholder"}</small>
+        </span>
+      </button>
+      <button class="rail-item" type="button" aria-label={isZh ? "返回顶部" : "Back to top"} data-back-top>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m5 14 7-7 7 7"/></svg>
+      </button>
+    </aside>
+
     <footer class="footer">
-      <div>
-        <strong>{isZh ? site.company.zh : site.company.en}</strong>
-        <p>{isZh ? site.address.zh : site.address.en}</p>
+      <div class="footer-grid">
+        <div class="footer-col">
+          <strong>{isZh ? site.company.zh : site.company.en}</strong>
+          <p>{isZh ? site.address.zh : site.address.en}</p>
+          <p class="footer-note">{isZh ? "吹瓶机及整线解决方案制造商" : "Blow molding machine & complete line solutions manufacturer"}</p>
+        </div>
+        <div class="footer-col">
+          <strong>{isZh ? "导航" : "Navigation"}</strong>
+          <a href={productsHref}>{productsLabel}</a>
+          <a href={`${homeHref}#about`}>{aboutLabel}</a>
+          <a href={`${homeHref}#contact`}>{contactLabel}</a>
+        </div>
+        <div class="footer-col">
+          <strong>{contactLabel}</strong>
+          <a href={`mailto:${site.email}`}>{site.email}</a>
+          <a href={`tel:${site.phone.replace(/\s/g, "")}`}>{site.phone}</a>
+          <a href={whatsappLink()} target="_blank" rel="noopener">WhatsApp</a>
+        </div>
       </div>
-      <div>
-        <a href={`mailto:${site.email}`}>{site.email}</a>
-      </div>
+      <p class="footer-copyright">© {new Date().getFullYear()} {isZh ? site.company.zh : site.company.en}</p>
     </footer>
+
+    <script>
+      const toggle = document.querySelector("[data-nav-toggle]");
+      const nav = document.querySelector("[data-nav]");
+      toggle?.addEventListener("click", () => {
+        const open = nav?.classList.toggle("is-open");
+        toggle.setAttribute("aria-expanded", String(Boolean(open)));
+      });
+
+      const wechatToggle = document.querySelector("[data-wechat-toggle]");
+      const wechatPop = document.querySelector("[data-wechat-pop]");
+      wechatToggle?.addEventListener("click", () => {
+        if (wechatPop) wechatPop.hidden = !wechatPop.hidden;
+      });
+
+      document.querySelector("[data-back-top]")?.addEventListener("click", () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    </script>
   </body>
 </html>

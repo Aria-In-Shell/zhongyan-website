@@ -1,0 +1,42 @@
+---
+import ProductCard from "./ProductCard.astro";
+import ProductFilters from "./ProductFilters.astro";
+import { withBase } from "../utils/paths";
+
+const { products = [], locale = "en" } = Astro.props;
+const isZh = locale === "zh";
+const materials = [...new Set(products.map((product) => product.material).filter(Boolean))];
+const contactHref = withBase(isZh ? "/zh/#contact" : "/#contact");
+---
+
+<main class="subpage-main">
+  <section class="page-hero">
+    <p class="eyebrow">{isZh ? "产品中心" : "Product Center"}</p>
+    <h1>{isZh ? "产品中心" : "Product Center"}</h1>
+    <p>{isZh ? "按型号、容量、材料和产能筛选设备。" : "Filter equipment by model, capacity, material and production needs."}</p>
+  </section>
+
+  <section class="section">
+    <div class="product-layout">
+      <ProductFilters locale={locale} materials={materials} />
+      <div>
+        <div class="result-bar">
+          <strong data-product-count>{products.length}</strong>
+          <span>{isZh ? "台设备符合条件" : "machines available"}</span>
+        </div>
+        <div class="product-grid">
+          {products.map((product) => <ProductCard product={product} locale={locale} />)}
+        </div>
+        <div class="empty-state" data-empty-state hidden>
+          <h3>{isZh ? "没有找到匹配的设备" : "No matching machines found"}</h3>
+          <p>
+            {isZh
+              ? "告诉我们您的瓶型、容量和产能目标，我们来推荐合适的设备。"
+              : "Tell us your bottle type, capacity and output target — we will recommend the right machine."}
+          </p>
+          <a class="button primary" href={contactHref}>{isZh ? "提交选型需求" : "Submit Your Requirements"}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

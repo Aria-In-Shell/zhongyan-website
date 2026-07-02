@@ -1,28 +1,85 @@
 ---
-const { locale = "en" } = Astro.props;
+import { outputBands, capacityBands } from "../data/products";
+
+const { locale = "en", materials = ["PET", "PP"] } = Astro.props;
+const isZh = locale === "zh";
+const allLabel = isZh ? "全部" : "All";
 ---
 
-<aside class="filters" aria-label="Product filters">
+<aside class="filters" aria-label={isZh ? "产品筛选" : "Product filters"}>
   <div class="filter-group">
-    <label for="search">{locale === "zh" ? "型号 / 名称" : "Model / Name"}</label>
-    <input id="search" type="search" placeholder={locale === "zh" ? "例如 ZY-06GS 或 5L" : "e.g. ZY-06GS or 5L"} data-search-input />
+    <label for="search">{isZh ? "型号 / 名称" : "Model / Name"}</label>
+    <input id="search" type="search" placeholder={isZh ? "例如 ZY-08X 或 广口" : "e.g. ZY-08X or wide-mouth"} data-search-input />
   </div>
-  <p>{locale === "zh" ? "更多筛选会在接入 PocketBase 后扩展。" : "More filters will be added after PocketBase integration."}</p>
+
+  <div class="filter-group">
+    <label for="filter-capacity">{isZh ? "容量" : "Capacity"}</label>
+    <select id="filter-capacity" data-filter-select data-filter-key="capacityBand">
+      <option value="">{allLabel}</option>
+      {Object.entries(capacityBands).map(([value, label]) => (
+        <option value={value}>{isZh ? label.zh : label.en}</option>
+      ))}
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label for="filter-material">{isZh ? "材料" : "Material"}</label>
+    <select id="filter-material" data-filter-select data-filter-key="material">
+      <option value="">{allLabel}</option>
+      {materials.map((material) => <option value={material}>{material}</option>)}
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label for="filter-output">{isZh ? "产能档" : "Output Range"}</label>
+    <select id="filter-output" data-filter-select data-filter-key="outputBand">
+      <option value="">{allLabel}</option>
+      {Object.entries(outputBands).map(([value, label]) => (
+        <option value={value}>{isZh ? label.zh : label.en}</option>
+      ))}
+    </select>
+  </div>
+
+  <button class="button ghost" type="button" data-filter-reset>{isZh ? "重置筛选" : "Reset Filters"}</button>
 </aside>
 
 <script>
   const input = document.querySelector("[data-search-input]");
+  const selects = [...document.querySelectorAll("[data-filter-select]")];
+  const resetButton = document.querySelector("[data-filter-reset]");
   const cards = [...document.querySelectorAll("[data-product-card]")];
   const count = document.querySelector("[data-product-count]");
+  const emptyState = document.querySelector("[data-empty-state]");
 
-  input?.addEventListener("input", () => {
-    const keyword = input.value.trim().toLowerCase();
+  function applyFilters() {
+    const keyword = (input?.value ?? "").trim().toLowerCase();
+    const active = selects
+      .filter((select) => select.value)
+      .map((select) => ({ key: select.dataset.filterKey, value: select.value }));
+
     let visible = 0;
     cards.forEach((card) => {
-      const matched = card.dataset.search.toLowerCase().includes(keyword);
+      const matchesKeyword = !keyword || card.dataset.search.toLowerCase().includes(keyword);
+      const matchesFilters = active.every(({ key, value }) => {
+        const dataKey = key.replace(/([A-Z])/g, "-$1").toLowerCase();
+        return card.getAttribute(`data-${dataKey}`) === value;
+      });
+      const matched = matchesKeyword && matchesFilters;
       card.style.display = matched ? "" : "none";
       if (matched) visible += 1;
     });
+
     if (count) count.textContent = String(visible);
+    if (emptyState) emptyState.hidden = visible !== 0;
+  }
+
+  input?.addEventListener("input", applyFilters);
+  selects.forEach((select) => select.addEventListener("change", applyFilters));
+  resetButton?.addEventListener("click", () => {
+    if (input) input.value = "";
+    selects.forEach((select) => {
+      select.value = "";
+    });
+    applyFilters();
   });
 </script>

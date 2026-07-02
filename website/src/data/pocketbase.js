@@ -6,12 +6,11 @@ function getPocketBaseUrl() {
   return import.meta.env.PUBLIC_PB_URL || DEFAULT_PB_URL;
 }
 
+// 注意：excelModel / sourceMatch 属于内部对账字段，不映射到前台。
 function fromPocketBaseRecord(record) {
   return {
     id: record.productId,
     model: record.model,
-    excelModel: record.excelModel,
-    sourceMatch: record.sourceMatch,
     category: record.category,
     material: record.material,
     cavities: record.cavities,
@@ -31,6 +30,14 @@ function fromPocketBaseRecord(record) {
   };
 }
 
+let loggedSource = false;
+
+function logDataSource(source, detail = "") {
+  if (loggedSource) return;
+  loggedSource = true;
+  console.log(`[products] data source for this build: ${source}${detail ? ` (${detail})` : ""}`);
+}
+
 export async function getProducts() {
   const url = `${getPocketBaseUrl()}/api/collections/products/records?perPage=200&filter=${encodeURIComponent("visibleInCatalog=true")}`;
 
@@ -41,10 +48,13 @@ export async function getProducts() {
     }
 
     const data = await response.json();
+    logDataSource("PocketBase", getPocketBaseUrl());
     return data.items.map(fromPocketBaseRecord);
   } catch (error) {
-    console.warn(`Using fallback products because PocketBase is unavailable at ${getPocketBaseUrl()}.`);
-    return fallbackProducts.filter((product) => product.visibleInCatalog);
+    logDataSource("LOCAL FALLBACK", `PocketBase unavailable at ${getPocketBaseUrl()}`);
+    return fallbackProducts
+      .filter((product) => product.visibleInCatalog)
+      .map(({ excelModel, sourceMatch, ...product }) => product);
   }
 }
 

@@ -1,0 +1,153 @@
+---
+import ProductCard from "./ProductCard.astro";
+import InquiryForm from "./InquiryForm.astro";
+import { site, whatsappLink } from "../data/site";
+import { withBase } from "../utils/paths";
+
+const { locale = "en", featuredProducts = [] } = Astro.props;
+const isZh = locale === "zh";
+const productsHref = withBase(isZh ? "/zh/products/" : "/products/");
+
+const t = isZh
+  ? {
+      eyebrow: "吹瓶机及整线解决方案",
+      heroTitle: "中研智能装备",
+      heroCopy: "致力于为全球客户提供先进、高效、可靠的吹瓶机及整线解决方案",
+      ctaProducts: "查看设备",
+      ctaContact: "获取方案",
+      stats: [
+        { value: "1000 - 24000", label: "瓶/小时 产能覆盖" },
+        { value: "PET / PP", label: "适用材料" },
+        { value: "整线交付", label: "从瓶胚到成品线" }
+      ],
+      featuredEyebrow: "核心产品",
+      featuredTitle: "按产能与瓶型选择设备",
+      featuredMore: "查看全部设备",
+      aboutEyebrow: "关于中研",
+      aboutTitle: "聚焦吹瓶设备、瓶型适配与生产线配套支持。",
+      aboutCopy:
+        "中研智能装备为客户提供 PET、PP 吹瓶设备选型、瓶型适配、产能规划与整线配置支持。网站将优先帮助客户按真实生产需求找到合适设备，再进入询价与方案沟通。",
+      trustEyebrow: "为什么选择中研",
+      trustItems: [
+        { title: "制造能力", copy: "自有厂房与装配产线（图片素材待补充）" },
+        { title: "资质认证", copy: "认证信息整理中（占位）" },
+        { title: "出口经验", copy: "海外交付案例整理中（占位）" },
+        { title: "售后支持", copy: "安装调试与备件支持（详情待补充）" }
+      ],
+      contactEyebrow: "联系我们",
+      contactTitle: "告诉我们瓶型和产能目标",
+      contactCopy: "我们会根据材料、容量、产能和整线需求推荐设备。",
+      contactCta: "立即询价",
+      contactWhatsApp: "WhatsApp 联系"
+    }
+  : {
+      eyebrow: "Blow molding machine and complete line solutions",
+      heroTitle: "Zhongyan Intelligent Equipment",
+      heroCopy: "Advanced, efficient and reliable blow molding equipment for global bottle production lines.",
+      ctaProducts: "View Machines",
+      ctaContact: "Get a Solution",
+      stats: [
+        { value: "1,000 - 24,000", label: "bottles per hour" },
+        { value: "PET / PP", label: "materials supported" },
+        { value: "Complete Line", label: "from preform to packing" }
+      ],
+      featuredEyebrow: "Featured Machines",
+      featuredTitle: "Select equipment by output and bottle type",
+      featuredMore: "View all machines",
+      aboutEyebrow: "About Zhongyan",
+      aboutTitle: "Focused on blow molding equipment, bottle adaptation and production line support.",
+      aboutCopy:
+        "Zhongyan provides PET and PP blow molding machines, model selection support, bottle compatibility planning and complete line equipment coordination for production-oriented customers.",
+      trustEyebrow: "Why Zhongyan",
+      trustItems: [
+        { title: "Manufacturing", copy: "In-house factory and assembly lines (photos coming soon)" },
+        { title: "Certifications", copy: "Certification details being compiled (placeholder)" },
+        { title: "Export Experience", copy: "Overseas delivery cases being compiled (placeholder)" },
+        { title: "After-sales", copy: "Installation, commissioning and spare parts support" }
+      ],
+      contactEyebrow: "Contact",
+      contactTitle: "Send your bottle and output target",
+      contactCopy: "We will respond with equipment recommendations and solution planning.",
+      contactCta: "Inquire Now",
+      contactWhatsApp: "Chat on WhatsApp"
+    };
+---
+
+<main>
+  <section class="hero machine-hero">
+    <img
+      src={withBase("/images/hero-factory.jpg")}
+      alt={isZh ? "中研智能装备厂房与吹瓶设备" : "Zhongyan factory floor with blow molding machines"}
+      width="1920"
+      height="1280"
+      fetchpriority="high"
+    />
+    <div class="hero-content">
+      <p class="eyebrow">{t.eyebrow}</p>
+      <h1>{t.heroTitle}</h1>
+      <p class="hero-copy">{t.heroCopy}</p>
+
+      <div class="hero-actions">
+        <a class="button primary" href={productsHref}>{t.ctaProducts}</a>
+        <a class="button secondary" href="#contact">{t.ctaContact}</a>
+      </div>
+
+      <div class="hero-stats">
+        {t.stats.map((stat) => (
+          <div class="hero-stat">
+            <strong>{stat.value}</strong>
+            <span>{stat.label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  {featuredProducts.length ? (
+    <section class="section">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">{t.featuredEyebrow}</p>
+          <h2>{t.featuredTitle}</h2>
+        </div>
+        <a class="button ghost" href={productsHref}>{t.featuredMore}</a>
+      </div>
+      <div class="product-grid">
+        {featuredProducts.map((product) => <ProductCard product={product} locale={locale} />)}
+      </div>
+    </section>
+  ) : null}
+
+  <section class="section intro-section" id="about">
+    <p class="eyebrow">{t.aboutEyebrow}</p>
+    <h2>{t.aboutTitle}</h2>
+    <p>{t.aboutCopy}</p>
+  </section>
+
+  <section class="trust-section">
+    <div class="trust-inner">
+      <p class="eyebrow">{t.trustEyebrow}</p>
+      <div class="trust-grid">
+        {t.trustItems.map((item) => (
+          <div class="trust-card">
+            <strong>{item.title}</strong>
+            <p>{item.copy}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="contact-section" id="contact">
+    <div>
+      <p class="eyebrow">{t.contactEyebrow}</p>
+      <h2>{t.contactTitle}</h2>
+      <p>{t.contactCopy}</p>
+      <p class="reply-promise">{isZh ? site.replyPromise.zh : site.replyPromise.en}</p>
+      <a class="button secondary" href={whatsappLink()} target="_blank" rel="noopener">{t.contactWhatsApp}</a>
+    </div>
+    <div class="contact-form-panel">
+      <InquiryForm locale={locale} />
+    </div>
+  </section>
+</main>

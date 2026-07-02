@@ -3,70 +3,87 @@ const { locale = "en", model = "" } = Astro.props;
 const isZh = locale === "zh";
 ---
 
-<form class="inquiry-form" id="inquiry" data-inquiry-form data-locale={locale}>
-  <label>{isZh ? "姓名" : "Name"}<input name="name" required /></label>
-  <label>{isZh ? "邮箱" : "Email"}<input type="email" name="email" required /></label>
-  <label>{isZh ? "电话" : "Phone"}<input name="phone" /></label>
+<form class="inquiry-form" data-inquiry-form data-locale={locale}>
+  <label>{isZh ? "姓名 *" : "Name *"}<input name="name" required autocomplete="name" /></label>
+  <label>{isZh ? "邮箱 *" : "Email *"}<input type="email" name="email" required autocomplete="email" /></label>
+  <label>{isZh ? "公司" : "Company"}<input name="company" autocomplete="organization" /></label>
+  <label>{isZh ? "电话 / WhatsApp" : "Phone / WhatsApp"}<input name="phone" autocomplete="tel" /></label>
   <label>{isZh ? "感兴趣型号" : "Interested Model"}<input name="interestedModel" value={model} /></label>
   <label>{isZh ? "材料" : "Material"}<input name="material" placeholder="PET / PP" /></label>
-  <label>{isZh ? "目标产能" : "Target Output"}<input name="targetOutput" /></label>
-  <label class="wide" hidden>Website<input name="website" autocomplete="off" tabindex="-1" /></label>
-  <label class="wide">{isZh ? "需求描述" : "Message"}<textarea name="message" rows="4" required></textarea></label>
+  <label>{isZh ? "容量" : "Bottle Capacity"}<input name="capacity" placeholder={isZh ? "如 600ml / 2L" : "e.g. 600ml / 2L"} /></label>
+  <label>{isZh ? "目标产能" : "Target Output"}<input name="targetOutput" placeholder={isZh ? "瓶/小时" : "bottles per hour"} /></label>
+  <label class="wide checkbox-label">
+    <input type="checkbox" name="wholeLine" />
+    <span>{isZh ? "需要整线方案（从瓶胚到成品）" : "I need a complete line solution (preform to packing)"}</span>
+  </label>
+  <label class="wide" hidden aria-hidden="true">Website<input name="website" autocomplete="off" tabindex="-1" /></label>
+  <label class="wide">{isZh ? "需求描述 *" : "Message *"}<textarea name="message" rows="4" required></textarea></label>
   <button class="button primary" type="submit">{isZh ? "提交询价" : "Submit Inquiry"}</button>
-  <p data-form-status></p>
+  <p class="privacy-note wide">
+    {isZh
+      ? "我们仅将您的信息用于回复此次咨询，不会泄露给第三方。"
+      : "Your information is only used to respond to this inquiry and is never shared with third parties."}
+  </p>
+  <p data-form-status role="status"></p>
 </form>
 
 <script>
+  // demo 阶段固定本地 PocketBase；上线时改为 import.meta.env.PUBLIC_PB_URL 注入
   const PB_URL = "http://127.0.0.1:8090";
-  const form = document.querySelector("[data-inquiry-form]");
-  const status = document.querySelector("[data-form-status]");
 
-  form?.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    const isZh = form.dataset.locale === "zh";
-    const button = form.querySelector("button[type='submit']");
-    const data = new FormData(form);
+  document.querySelectorAll("[data-inquiry-form]").forEach((form) => {
+    const status = form.querySelector("[data-form-status]");
 
-    if (data.get("website")) {
-      return;
-    }
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const isZh = form.dataset.locale === "zh";
+      const button = form.querySelector("button[type='submit']");
+      const data = new FormData(form);
 
-    const payload = {
-      name: data.get("name")?.toString() ?? "",
-      email: data.get("email")?.toString() ?? "",
-      phone: data.get("phone")?.toString() ?? "",
-      interestedModel: data.get("interestedModel")?.toString() ?? "",
-      material: data.get("material")?.toString() ?? "",
-      targetOutput: data.get("targetOutput")?.toString() ?? "",
-      message: data.get("message")?.toString() ?? "",
-      sourcePage: window.location.pathname,
-      locale: form.dataset.locale ?? document.documentElement.lang,
-      status: "new"
-    };
-
-    if (status) status.textContent = isZh ? "正在提交..." : "Submitting...";
-    if (button) button.disabled = true;
-
-    try {
-      const response = await fetch(`${PB_URL}/api/collections/leads/records`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        throw new Error(await response.text());
+      if (data.get("website")) {
+        return;
       }
 
-      form.reset();
-      const modelInput = form.querySelector("[name='interestedModel']");
-      if (modelInput) modelInput.value = payload.interestedModel;
-      if (status) status.textContent = isZh ? "提交成功，我们会尽快联系您。" : "Submitted. We will contact you soon.";
-    } catch (error) {
-      console.error(error);
-      if (status) status.textContent = isZh ? "提交失败，请稍后再试或直接联系我们。" : "Submission failed. Please try again or contact us directly.";
-    } finally {
-      if (button) button.disabled = false;
-    }
+      const payload = {
+        name: data.get("name")?.toString() ?? "",
+        email: data.get("email")?.toString() ?? "",
+        company: data.get("company")?.toString() ?? "",
+        phone: data.get("phone")?.toString() ?? "",
+        interestedModel: data.get("interestedModel")?.toString() ?? "",
+        material: data.get("material")?.toString() ?? "",
+        capacity: data.get("capacity")?.toString() ?? "",
+        targetOutput: data.get("targetOutput")?.toString() ?? "",
+        wholeLine: data.get("wholeLine") === "on",
+        message: data.get("message")?.toString() ?? "",
+        sourcePage: window.location.pathname,
+        locale: form.dataset.locale ?? document.documentElement.lang,
+        status: "new"
+      };
+
+      if (status) status.textContent = isZh ? "正在提交..." : "Submitting...";
+      if (button) button.disabled = true;
+
+      try {
+        const response = await fetch(`${PB_URL}/api/collections/leads/records`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+
+        form.reset();
+        const modelInput = form.querySelector("[name='interestedModel']");
+        if (modelInput) modelInput.value = payload.interestedModel;
+        if (status) status.textContent = isZh ? "提交成功，我们将在 24 小时内联系您。" : "Submitted. We will contact you within 24 hours.";
+      } catch (error) {
+        console.error(error);
+        if (status) status.textContent = isZh ? "提交失败，请稍后再试或直接联系我们。" : "Submission failed. Please try again or contact us directly.";
+      } finally {
+        if (button) button.disabled = false;
+      }
+    });
   });
 </script>

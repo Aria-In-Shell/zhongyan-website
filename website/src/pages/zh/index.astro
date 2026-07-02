@@ -1,75 +1,17 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { withBase } from "../../utils/paths";
+import HomePage from "../../components/HomePage.astro";
+import { getFeaturedProducts } from "../../data/products";
+import { getProducts } from "../../data/pocketbase";
 
-const entryCards = [
-  {
-    title: "产品中心",
-    subtitle: "按产能、瓶型、用途和型号筛选设备",
-    href: withBase("/zh/products/"),
-    icon: "01"
-  },
-  {
-    title: "关于我们",
-    subtitle: "制造能力、整线交付与服务支持",
-    href: "#about",
-    icon: "02"
-  },
-  {
-    title: "联系我们",
-    subtitle: "提交瓶型、产能和项目需求",
-    href: "#contact",
-    icon: "03"
-  }
-];
+const products = await getProducts();
+const featuredProducts = getFeaturedProducts(products);
 ---
 
-<BaseLayout locale="zh" title="江西中研智能装备有限公司">
-  <main>
-    <section class="hero legacy-hero">
-      <img
-        src="https://omo-oss-image1.thefastimg.com/portal-saas/pg2024112919344399025/cms/image/ad909c37-42af-4128-ae64-9d2df63fd20f.jpg"
-        alt="城市数字科技背景"
-        width="1920"
-        height="960"
-        fetchpriority="high"
-      />
-      <div class="hero-content legacy-hero-content">
-        <p class="eyebrow">吹瓶机及整线解决方案</p>
-        <h1>中研智能装备</h1>
-        <p class="hero-copy">
-          致力于为全球客户提供先进、高效、可靠的吹瓶机及整线解决方案
-        </p>
-
-        <div class="hero-entry-grid" aria-label="主要导航">
-          {entryCards.map((card) => (
-            <a class="hero-entry-card" href={card.href}>
-              <span>
-                <strong>{card.title}</strong>
-                <em>{card.subtitle}</em>
-              </span>
-              <i>{card.icon}</i>
-            </a>
-          ))}
-        </div>
-      </div>
-    </section>
-
-    <section class="section intro-section" id="about">
-      <p class="eyebrow">关于中研</p>
-      <h2>聚焦吹瓶设备、瓶型适配与生产线配套支持。</h2>
-      <p>
-        中研智能装备为客户提供 PET、PP 吹瓶设备选型、瓶型适配、产能规划与整线配置支持。网站将优先帮助客户按真实生产需求找到合适设备，再进入询价与方案沟通。
-      </p>
-    </section>
-
-    <section class="contact-section" id="contact">
-      <div>
-        <p class="eyebrow">联系我们</p>
-        <h2>告诉我们瓶型和产能目标</h2>
-        <p>我们会根据材料、容量、产能和整线需求推荐设备。</p>
-      </div>
-      <a class="button primary" href={withBase("/zh/products/zy-12xq/#inquiry")}>立即询价</a>
-    </section>
-  </main>
+<BaseLayout
+  locale="zh"
+  title="江西中研智能装备有限公司 | PET / PP 吹瓶机及整线方案"
+  description="提供 PET、PP 吹瓶机选型、瓶型适配、产能规划与整线配置支持。"
+>
+  <HomePage locale="zh" featuredProducts={featuredProducts} />
 </BaseLayout>

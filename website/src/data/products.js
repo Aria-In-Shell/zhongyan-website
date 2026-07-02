@@ -275,8 +275,59 @@ export const categories = {
   custom: { en: "Custom Solution", zh: "定制方案" }
 };
 
+export const automationLabels = {
+  "servo-auto": { en: "Servo Fully Automatic", zh: "伺服全自动" },
+  "fully-auto": { en: "Fully Automatic", zh: "全自动" },
+  "semi-auto": { en: "Semi Automatic", zh: "半自动" }
+};
+
+export const outputBands = {
+  "1000-3000": { en: "1,000 - 3,000 bph", zh: "1000 - 3000 瓶/小时" },
+  "3000-8000": { en: "3,000 - 8,000 bph", zh: "3000 - 8000 瓶/小时" },
+  "8000+": { en: "8,000+ bph", zh: "8000+ 瓶/小时" }
+};
+
+export const capacityBands = {
+  "under-1l": { en: "Up to 1L", zh: "1L 以内" },
+  "1l-2l": { en: "1L - 2L", zh: "1L - 2L" },
+  "over-2l": { en: "Above 2L", zh: "2L 以上" }
+};
+
+function capacityToMl(capacity = "") {
+  const match = String(capacity).match(/([\d.]+)\s*(ml|l)/i);
+  if (!match) return null;
+  const value = Number(match[1]);
+  return match[2].toLowerCase() === "l" ? value * 1000 : value;
+}
+
+export function getCapacityBand(product) {
+  const ml = capacityToMl(product.maxCapacity);
+  if (ml == null) return "";
+  if (ml <= 1000) return "under-1l";
+  if (ml <= 2000) return "1l-2l";
+  return "over-2l";
+}
+
+export function getCategoryLabel(category, locale = "en") {
+  return categories[category]?.[locale] ?? category;
+}
+
+export function getAutomationLabel(automation, locale = "en") {
+  return automationLabels[automation]?.[locale] ?? automation;
+}
+
 export function getProductText(product, locale = "en") {
   return product.i18n[locale] ?? product.i18n.en;
+}
+
+export function getFeaturedProducts(list = products) {
+  return list.filter((product) => product.visibleInCatalog && product.featured);
+}
+
+export function getRelatedProducts(product, list = products, limit = 3) {
+  return list
+    .filter((item) => item.visibleInCatalog && item.id !== product.id && item.category === product.category)
+    .slice(0, limit);
 }
 
 export function getVisibleProducts() {

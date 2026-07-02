@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+
+Sitemap: https://aria-in-shell.github.io/zhongyan-website/sitemap-index.xml

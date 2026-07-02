@@ -1,0 +1,131 @@
+---
+import InquiryForm from "./InquiryForm.astro";
+import ProductCard from "./ProductCard.astro";
+import { getProductText, getCategoryLabel, getAutomationLabel } from "../data/products";
+import { site } from "../data/site";
+import { withBase } from "../utils/paths";
+
+const { product, relatedProducts = [], locale = "en" } = Astro.props;
+const isZh = locale === "zh";
+const text = getProductText(product, locale);
+const productImage = withBase(product.image);
+const images = product.images ?? [product.image];
+
+const homeHref = withBase(isZh ? "/zh/" : "/");
+const productsHref = withBase(isZh ? "/zh/products/" : "/products/");
+
+const specs = [
+  [isZh ? "分类" : "Category", getCategoryLabel(product.category, locale)],
+  [isZh ? "腔数" : "Cavities", product.cavities],
+  [isZh ? "最大容量" : "Max Capacity", product.maxCapacity],
+  [isZh ? "理论产能" : "Output", `${product.outputPerHour} ${isZh ? "瓶/小时" : "bph"}`],
+  [isZh ? "瓶口范围" : "Neck Range", product.neckRange],
+  [isZh ? "最大瓶径" : "Max Bottle Diameter", product.maxDiameter],
+  [isZh ? "最大瓶高" : "Max Bottle Height", product.maxHeight],
+  [isZh ? "适用材料" : "Material", product.material],
+  [isZh ? "自动化程度" : "Automation", getAutomationLabel(product.automation, locale)]
+].filter(([, value]) => value !== undefined && value !== null && value !== "");
+---
+
+<main class="subpage-main">
+  <nav class="breadcrumbs" aria-label={isZh ? "面包屑" : "Breadcrumb"}>
+    <a href={homeHref}>{isZh ? "首页" : "Home"}</a>
+    <span>/</span>
+    <a href={productsHref}>{isZh ? "产品中心" : "Products"}</a>
+    <span>/</span>
+    <strong>{product.model}</strong>
+  </nav>
+
+  <section class="section detail-grid">
+    <div class="product-gallery" data-gallery>
+      <div class="gallery-main-frame" data-gallery-frame>
+        <button class="gallery-arrow gallery-arrow-left" type="button" data-gallery-prev aria-label={isZh ? "上一张" : "Previous image"}>‹</button>
+        <img class="gallery-main-image" src={productImage} alt={text.name} width="620" height="465" loading="eager" data-gallery-main />
+        <button class="gallery-arrow gallery-arrow-right" type="button" data-gallery-next aria-label={isZh ? "下一张" : "Next image"}>›</button>
+        <div class="gallery-dots" aria-label={isZh ? "图片分页" : "Image pagination"}>
+          {images.map((_, index) => (
+            <button class:list={["gallery-dot", { "is-active": index === 0 }]} type="button" data-gallery-dot data-index={index} aria-label={`Show image ${index + 1}`}></button>
+          ))}
+        </div>
+      </div>
+      <div class="gallery-thumbs">
+        {images.map((image, index) => (
+          <button class:list={["gallery-thumb", { "is-active": index === 0 }]} type="button" data-gallery-thumb data-index={index} data-src={withBase(image)} aria-label={`Show image ${index + 1}`}>
+            <img src={withBase(image)} alt={`${text.name} ${index + 1}`} width="180" height="135" loading={index === 0 ? "eager" : "lazy"} />
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <div>
+      <p class="eyebrow">{product.model}</p>
+      <h1>{text.name}</h1>
+      <p>{text.sellingPoint}</p>
+
+      <dl class="spec-list">
+        {specs.map(([label, value]) => (
+          <div><dt>{label}</dt><dd>{value}</dd></div>
+        ))}
+      </dl>
+
+      {text.features?.length ? (
+        <div class="feature-block">
+          <h2>{isZh ? "机器特点" : "Machine Features"}</h2>
+          <ul class="feature-list">
+            {text.features.map((feature) => <li>{feature}</li>)}
+          </ul>
+        </div>
+      ) : null}
+
+      <h2 id="inquiry">{isZh ? "在线询价" : "Inquiry"}</h2>
+      <p class="reply-promise">{isZh ? site.replyPromise.zh : site.replyPromise.en}</p>
+      <InquiryForm locale={locale} model={product.model} />
+    </div>
+  </section>
+
+  {relatedProducts.length ? (
+    <section class="section related-section">
+      <h2>{isZh ? "相关设备" : "Related Machines"}</h2>
+      <div class="product-grid">
+        {relatedProducts.map((related) => <ProductCard product={related} locale={locale} />)}
+      </div>
+    </section>
+  ) : null}
+</main>
+
+<script>
+  document.querySelectorAll("[data-gallery]").forEach((gallery) => {
+    const mainImage = gallery.querySelector("[data-gallery-main]");
+    const thumbs = gallery.querySelectorAll("[data-gallery-thumb]");
+    const dots = gallery.querySelectorAll("[data-gallery-dot]");
+    const prevButton = gallery.querySelector("[data-gallery-prev]");
+    const nextButton = gallery.querySelector("[data-gallery-next]");
+    let activeIndex = 0;
+
+    const showImage = (nextIndex) => {
+      if (!mainImage || thumbs.length === 0) return;
+
+      activeIndex = (nextIndex + thumbs.length) % thumbs.length;
+      const activeThumb = thumbs[activeIndex];
+      const nextSrc = activeThumb?.dataset.src;
+      if (!nextSrc) return;
+
+      mainImage.setAttribute("src", nextSrc);
+      thumbs.forEach((item) => item.classList.remove("is-active"));
+      dots.forEach((item) => item.classList.remove("is-active"));
+      activeThumb.classList.add("is-active");
+      dots[activeIndex]?.classList.add("is-active");
+    };
+
+    thumbs.forEach((thumb, index) => {
+      thumb.addEventListener("click", () => showImage(index));
+    });
+
+    dots.forEach((dot, index) => {
+      dot.addEventListener("click", () => showImage(index));
+    });
+
+    prevButton?.addEventListener("click", () => showImage(activeIndex - 1));
+    nextButton?.addEventListener("click", () => showImage(activeIndex + 1));
+  });
+</script>

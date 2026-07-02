@@ -1,0 +1,18 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { withBase } from "../utils/paths";
+---
+
+<BaseLayout locale="en" title="Page Not Found | Zhongyan" description="The page you are looking for does not exist.">
+  <main class="subpage-main">
+    <section class="section not-found">
+      <p class="eyebrow">404</p>
+      <h1>Page not found / 页面不存在</h1>
+      <p>The page you are looking for may have been moved or removed. 您访问的页面可能已被移动或删除。</p>
+      <div class="hero-actions">
+        <a class="button primary" href={withBase("/")}>Back to Home</a>
+        <a class="button ghost" href={withBase("/products/")}>View Machines</a>
+      </div>
+    </section>
+  </main>
+</BaseLayout>
